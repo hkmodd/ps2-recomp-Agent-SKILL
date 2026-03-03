@@ -25,7 +25,7 @@ For the agent to work flawlessly, your machine must have the following ready:
 2. **Python 3.x**: Required for the `log_reaper.py`, `pdf_grep.py`, and `pdf_extract_image.py` scripts. Install the PDF parser via: `pip install PyMuPDF pymupdf4llm`
 3. **Ghidra 11.4.2**:
    - Installed with the [EmotionEngine Reloaded Plugin](https://github.com/chaoticgd/ghidra-emotionengine-reloaded).
-   - Installed with the **GhydraMCP** extension running on port 8192.
+   - Installed with the [**GhydraMCP**](https://github.com/starsong-consulting/GhydraMCP) extension running on port 8192.
 
 ---
 
@@ -35,14 +35,18 @@ For the agent to work flawlessly, your machine must have the following ready:
 Ensure the `ps2-recomp-mastery/` folder is placed inside your root PS2Recomp workspace, alongside the `ps2xRecomp` and `ps2xRuntime` directories.
 
 ### 2. The Cold Start Prompt (Option A: New Project)
-If you are starting a game completely from scratch, open your AI IDE (Cursor/Antigravity) and use this prompt:
+If you are starting a game completely from scratch, open your AI IDE (Cursor/Antigravity) and use this **EXACT PROMPT** to establish strict AI boundaries:
 
-> "Carica la skill `ps2-recomp-mastery`. Devo fare il porting di [NOME GIOCO]. La ISO è in `[PERCORSO ASSOLUTO ISO]`. Inizia la Phase 0. Fai tutto in autonomia, fermati solo se hai bisogno del mio input per GhydraMCP o se vai in blocco."
+```text
+Load the skill `ps2-recomp-mastery`. I need to port [GAME NAME]. The ISO is located at `[ABSOLUTE PATH TO ISO]`. Start at Phase 0. Act autonomously. Only stop and ask for human input if you need me to use GhydraMCP inside Ghidra, or if you hit a Circuit Breaker infinite loop.
+```
 
 ### 3. The Warm Boot Prompt (Option B: Existing Project)
-If you already generated `game.toml`, or if you are mid-way fixing syscalls, use this prompt:
+If you already generated `game.toml`, or if you are mid-way fixing syscalls, use this **EXACT PROMPT** to safely resume the session using persistent memory:
 
-> "Carica la skill `ps2-recomp-mastery`. Stiamo lavorando a [NOME GIOCO]. Leggi il file `PS2_PROJECT_STATE.md` per capire a che fase siamo, e riprendi il lavoro da lì."
+```text
+Load the skill `ps2-recomp-mastery`. We are working on [GAME NAME]. Read the `PS2_PROJECT_STATE.md` file to infer the current Phase, and resume work autonomously from there.
+```
 *(Note: If the state file doesn't exist, the agent is trained to inspect your folders, infer the phase based on compiled files, and generate the state file on the fly).*
 
 ---
@@ -62,6 +66,12 @@ While the agent is highly autonomous, PS2 reverse engineering requires your eyes
 * **The Agent asks me to compile the game:** Tell it: "No, read your Skill. You must use `ps2-recomp-mastery/scripts/build_daemon.ps1`."
 * **The Agent is guessing blindly and crashing:** Tell it: "Stai violando il Circuit Breaker. Implementa il Dynamic Probing (Telemetria Empirica) come descritto nel tuo Playbook per leggere i valori dei registri."
 * **The Agent forgets an address:** Tell it: "Fai un Context Refresh. Leggi il `PS2_PROJECT_STATE.md`."
+---
+
+## 🙏 Acknowledgements & Credits
+
+This AI Skill directly leverages the revolutionary [**PS2Recomp**](https://github.com/ran-j/PS2Recomp) project created by **ran-j**. PS2Recomp is a monumental milestone in PlayStation 2 preservation and static recompilation. This AI workflow is built strictly *around* his open-source pipeline to automate the heavy lifting of reverse engineering. Huge thanks to ran-j and all contributors pushing the boundaries of the PS2 scene!
 
 ---
+
 *Created by the Antigravity Deepmind System for flawless PS2 porting.*
