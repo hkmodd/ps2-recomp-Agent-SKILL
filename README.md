@@ -35,7 +35,7 @@ For the agent to work flawlessly, your machine must have the following ready:
 ### 1. File Placement
 Ensure the `ps2-recomp-Agent-SKILL/` folder (or `ps2-recomp-Agent-SKILL-main/` if downloaded as ZIP) is placed inside your root PS2Recomp workspace, alongside the `ps2xRecomp` and `ps2xRuntime` directories.
 
-### 2. The Cold Start Prompt (Option A: New Project)
+### 2. Scenario A: The Clean Slate (Brand New Project)
 If you are starting a game completely from scratch, open your AI IDE (Cursor/Antigravity) and use this **EXACT PROMPT** to begin:
 
 ```text
@@ -43,15 +43,22 @@ Load the skill `ps2-recomp-Agent-SKILL`. I need to port [GAME NAME].
 The ISO is located at `[ABSOLUTE PATH TO ISO]`. Start at Phase 0. 
 ```
 
-### 3. The Warm Boot Prompt (Option B: Existing Project)
-If you already generated `game.toml`, or if you are mid-way fixing syscalls, use this **EXACT PROMPT** to safely resume the session using persistent memory:
+### 3. Scenario B: The Adoption (Mid-way Manual Progress)
+If you started porting a game *manually* (e.g., you already extracted the ELF, maybe set up Ghidra, or generated a basic `game.toml`), but you don't have a `PS2_PROJECT_STATE.md` file yet, use this prompt to let the Agent infer your progress:
+
+```text
+Load the skill `ps2-recomp-Agent-SKILL`. I am porting [GAME NAME].
+I have already made some manual progress. Please inspect my working directory, locate my ELF/TOML/logs if they exist, infer my current Phase, generate a `PS2_PROJECT_STATE.md` file reflecting reality, and tell me what we should do next.
+```
+
+### 4. Scenario C: The Warm Resume (Agent-Managed Project)
+If you an the Agent already worked on this, generated the `game.toml`, and you just want to resume the session after closing the IDE, use this prompt to safely hook back into the persistent memory:
 
 ```text
 Load the skill `ps2-recomp-Agent-SKILL`. We are working on [GAME NAME]. 
 Read the `PS2_PROJECT_STATE.md` file to infer the current Phase, 
 and resume work autonomously from there.
 ```
-*(Note: If the state file doesn't exist, the agent is trained to inspect your folders, infer the phase based on compiled files, and generate the state file on the fly).*
 
 ---
 
