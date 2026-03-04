@@ -33,13 +33,13 @@ For the agent to work flawlessly, your machine must have the following ready:
 ## 🚀 How to Start a Session
 
 ### 1. File Placement
-Ensure the `ps2-recomp-mastery/` folder is placed inside your root PS2Recomp workspace, alongside the `ps2xRecomp` and `ps2xRuntime` directories.
+Ensure the `ps2-recomp-Agent-SKILL/` folder (or `ps2-recomp-Agent-SKILL-main/` if downloaded as ZIP) is placed inside your root PS2Recomp workspace, alongside the `ps2xRecomp` and `ps2xRuntime` directories.
 
 ### 2. The Cold Start Prompt (Option A: New Project)
 If you are starting a game completely from scratch, open your AI IDE (Cursor/Antigravity) and use this **EXACT PROMPT** to begin:
 
 ```text
-Load the skill `ps2-recomp-mastery`. I need to port [GAME NAME]. 
+Load the skill `ps2-recomp-Agent-SKILL`. I need to port [GAME NAME]. 
 The ISO is located at `[ABSOLUTE PATH TO ISO]`. Start at Phase 0. 
 ```
 
@@ -47,7 +47,7 @@ The ISO is located at `[ABSOLUTE PATH TO ISO]`. Start at Phase 0.
 If you already generated `game.toml`, or if you are mid-way fixing syscalls, use this **EXACT PROMPT** to safely resume the session using persistent memory:
 
 ```text
-Load the skill `ps2-recomp-mastery`. We are working on [GAME NAME]. 
+Load the skill `ps2-recomp-Agent-SKILL`. We are working on [GAME NAME]. 
 Read the `PS2_PROJECT_STATE.md` file to infer the current Phase, 
 and resume work autonomously from there.
 ```
@@ -67,7 +67,7 @@ While the agent is highly autonomous, PS2 reverse engineering requires your eyes
 
 ## 🚨 Troubleshooting
 
-* **The Agent asks me to compile the game:** Tell it: "No, read your Skill. You must use `ps2-recomp-mastery/scripts/build_daemon.ps1`."
+* **The Agent asks me to compile the game:** Tell it: "No, read your Skill. You must use `ps2-recomp-Agent-SKILL/scripts/build_daemon.ps1`."
 * **The Agent is guessing blindly and crashing:** Tell it: "Stai violando il Circuit Breaker. Implementa il Dynamic Probing (Telemetria Empirica) come descritto nel tuo Playbook per leggere i valori dei registri."
 * **The Agent forgets an address:** Tell it: "Fai un Context Refresh. Leggi il `PS2_PROJECT_STATE.md`."
 ---
