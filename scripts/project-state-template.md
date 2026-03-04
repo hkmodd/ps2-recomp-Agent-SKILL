@@ -30,7 +30,8 @@
 PHASE_SETUP
 
 ## Build Configuration
-- **CMake Generator**: <!-- e.g. Visual Studio 17 2022 -->
+- **CMake Generator**: <!-- e.g. Ninja (preferred) or Visual Studio 17 2022 -->
+- **C++ Compiler**: <!-- clang-cl (preferred) or MSVC cl -->
 - **Build Type**: <!-- Debug / Release / RelWithDebInfo -->
 - **TOML Path**: <!-- path to game.toml -->
 - **Ghidra CSV Path**: <!-- path to exported function map, if any -->

@@ -82,3 +82,38 @@ If the recompiler hits an instruction it doesn't know how to translate (like com
 If execution hits this code path, the program will likely crash or behave incorrectly. These must be implemented manually via C++ Game Overrides.
 
 *Agent Action:* You must scan the generated C++ directory for `// Unhandled opcode` and log every single occurrence in the `PS2_PROJECT_STATE.md` under **Unhandled Opcodes** before attempting to build.
+
+## 4. Build Toolchain Optimization (CRITICAL)
+
+PS2Recomp generates **thousands** of C++ files (29,000+ for large games). The build toolchain choice has a **massive** impact on compile time:
+
+| Toolchain            | Generator                    | Approx. Full Build Time | Notes                             |
+| -------------------- | ---------------------------- | ----------------------- | --------------------------------- |
+| **Clang-CL + Ninja** | `-G Ninja` + clang-cl        | **~1 hour**             | ⚡ Best. Install via VS Installer. |
+| MSVC + Ninja         | `-G Ninja`                   | ~3-5 hours              | Good. Ninja parallelizes well.    |
+| MSVC + VS Solution   | `-G "Visual Studio 17 2022"` | ~20-25 hours            | ❌ Avoid. Serial bottleneck.       |
+
+### How to Install Clang + Ninja (via Visual Studio Installer)
+1. Open **Visual Studio Installer** → Modify your VS 2022 installation.
+2. Go to the **Individual Components** tab.
+3. Search for and enable:
+   - `C++ Clang Compiler for Windows`
+   - `C++ CMake tools for Windows` (includes Ninja)
+4. Click **Modify** and wait for installation.
+5. Restart your terminal. `clang-cl --version` and `ninja --version` should both work.
+
+The `build_daemon.ps1` script auto-detects the best available toolchain. If it falls back to MSVC + VS Solution, the agent MUST warn the user to install Clang/Ninja.
+
+### CMake Configuration for Clang+Ninja
+```bash
+# Inside the vcvars64.bat environment:
+cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
+cmake --build build --config Debug
+```
+
+### Important: Reconfiguring an Existing Build
+If the project was previously configured with a different generator (e.g., Visual Studio), you **must delete the `build/` directory** before reconfiguring with Ninja:
+```powershell
+Remove-Item -Recurse -Force .\ps2xRuntime\build
+# Then re-run build_daemon.ps1 — it will auto-detect and reconfigure
+```

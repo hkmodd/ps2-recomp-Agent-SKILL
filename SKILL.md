@@ -73,7 +73,12 @@ Assess the current phase from `PS2_PROJECT_STATE.md` and execute the associated 
 *Reference: `02-mips-r5900-isa.md` for translating missing MIPS instructions to C++.*
 
 ### Phase 4: Autonomous Build & Headless Testing (`PHASE_RUNTIME_BUILD`)
-> **CRITICAL RULE [THERMODYNAMIC LIMIT]:** NEVER modify `.h` header files unless absolutely, strictly necessary. Changing a core header will trigger a full rebuild of 29,000+ generated C++ files, which can take 25+ hours and exhaust RAM. Confine your fixes to `.cpp` files (like `ps2_syscalls.cpp` or game overrides).
+> **CRITICAL RULE [THERMODYNAMIC LIMIT]:** NEVER modify `.h` header files unless absolutely, strictly necessary. Changing a core header will trigger a full rebuild of 29,000+ generated C++ files, which can take 25+ hours on MSVC and exhaust RAM. Confine your fixes to `.cpp` files (like `ps2_syscalls.cpp` or game overrides).
+
+> **BUILD OPTIMIZATION [MANDATORY KNOWLEDGE]:** The `build_daemon.ps1` script auto-detects the fastest available toolchain:
+> 1. **Clang-CL + Ninja** — ⚡ TURBO MODE (~25x faster than vanilla MSVC). Requires "C++ Clang Compiler for Windows" + Ninja from Visual Studio Installer.
+> 2. **MSVC + Ninja** — Good parallelism, much faster than VS solutions.
+> 3. **MSVC + VS Solution** — The slowest fallback (~25 hours for 29k files). If the script falls back to this, you MUST warn the user: *"Your build is using the MSVC Solution generator, which is extremely slow for this project. Install Clang and Ninja via Visual Studio Installer for a 25x speedup."*
 
 1. Move the generated files to `ps2xRuntime/src/runner/`.
 2. Do NOT ask the user to compile or run the game manually. You are autonomous.
