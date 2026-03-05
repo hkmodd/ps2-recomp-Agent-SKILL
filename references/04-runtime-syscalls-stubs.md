@@ -58,13 +58,43 @@ void my_sceCdRead(R5900Context& ctx) {
 ## 5. Game Overrides (`Game_Overrides.txt` concept)
 You should keep game-specific hacks *out* of the core `ps2_syscalls.cpp` or generic SDK headers to avoid breaking other games.
 
-Instead, create a C++ file for the specific game (e.g. `swe3_overrides.cpp`).
-Register your overrides against the game's ELF ID or serial.
+Instead, create a C++ file for the specific game (e.g. `swe3_overrides.cpp` in `ps2xRuntime/src/runner/`).
+Register your overrides against the game's ELF metadata (basename, entry, crc32).
+
+**The API:**
 ```cpp
-// Override the binding for address 0x123456 dynamically
-Runtime::OverrideFunction(0x123456, swe3_custom_cd_read);
+#include "game_overrides.h"
+#include "ps2_runtime.h"
+
+namespace {
+    void applyMyGameOverrides(PS2Runtime &runtime) {
+        // Direct bind to existing stub/handler
+        ps2_game_overrides::bindAddressHandler(runtime, 0x00123456u, "sceCdRead");
+        
+        // Custom implementation wrapper
+        runtime.registerFunction(0x001D9410u,
+            [](uint8_t *rdram, R5900Context *ctx, PS2Runtime *rt) {
+                const uint32_t entryPc = ctx->pc;
+                // do stuff
+                ctx->gpr[2].words[0] = 0; // return 0
+                
+                // CRITICAL SAFETY FOR RAW WRAPPERS:
+                if (ctx->pc == entryPc) {
+                    ctx->pc = getRegU32(ctx, 31); // advance PC via ra
+                }
+            });
+    }
+}
+
+PS2_REGISTER_GAME_OVERRIDE(
+    "my-game-us",      // name
+    "SLUS_XXXX.XX",    // elfName
+    0x00100008u,       // entry point (0 avoids match)
+    0u,                // crc32 (0 avoids match)
+    applyMyGameOverrides
+);
 ```
-This is how a single PS2Recomp runtime stays compatible with multiple games while allowing deep custom patches per game.
+> **CRITICAL WARNING:** When using `bindAddressHandler(...)`, if the backend raw handler doesn't naturally advance `ctx->pc` (like many simple hooks), it will infinitely loop re-dispatching the exact same PC. If that happens, use `runtime.registerFunction` and advance the PC manually using `getRegU32(ctx, 31)` (the return address)!
 
 ## 6. Vectorization and SIMD Intrinsics
 PS2 math relies heavily on 128-bit vectorization.

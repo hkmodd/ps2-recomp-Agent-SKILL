@@ -3,6 +3,9 @@
 
 If a game is stripped (no symbols), the path from "first compile" to "seeing the menu" is a predictable loop of fixing specific roadblocks.
 
+**CRITICAL MENTAL MODEL: Address-Based Dispatch**
+Runtime dispatch is purely address-based (`0xADDR` -> function pointer), NOT name-based (`sub_xxx`). Renaming generated C++ functions does not fix execution. If `0x00123456` should behave like `sceCdRead`, you MUST map that address to the handler in TOML or via a Game Override.
+
 ## The Iteration Loop
 1. Run `ps2xRuntime` built with the game.
 2. See where it crashes or hangs.
@@ -72,3 +75,13 @@ Add a patch in TOML to replace the branch instruction that forms the loop with a
 4. **GS Initialization:** The game kicks off GIF tags and configures the GS for drawing.
    *Action:* The runtime should handle standard GS routing, but verify no custom setup loops are hanging.
 5. **The First Frame:** If the game doesn't crash after setting up display memory and reading an asset file, you will likely see a splash screen or intro video!
+
+## Final Checklist Before Asking "Why Is It Stuck?"
+If you are stuck in a game loop, verify:
+1. `registerAllFunctions(runtime)` is non-empty and actually called before `loadELF`.
+2. The Entry point function is registered.
+3. The first unresolved function addresses are mapped or implemented.
+4. The first unknown syscalls are handled.
+5. There is no obvious same-PC infinite loop caused by direct raw handler binding in Game Overrides.
+6. Temporary return stubs (`ret0`/`ret1`) are limited and documented (if you left too many, the game logic will eventually fail randomly).
+If all 6 are true, you are in real behavior emulation territory, not plumbing failure.

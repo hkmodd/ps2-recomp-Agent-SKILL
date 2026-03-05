@@ -9,8 +9,8 @@ The analyzer takes a PS2 ELF (and optional Ghidra CSV) and outputs a `game.toml`
 
 ### Operation Modes
 1. **With Symbols (DWARF):** Ideal. Perfect boundaries and function names.
-2. **Stripped (No Symbols):** Uses a heuristic `jal` scanner. Starts at entrypoint and follows `jal` (Jump And Link) instructions to find functions. Often misses orphaned functions or jump tables.
-3. **Ghidra Feed:** If the heuristic fails, you can analyze the ELF in Ghidra, export the function map to a CSV, and run `ps2_analyzer` passing the CSV.
+2. **Stripped (No Symbols):** Uses a native heuristic `jal` scanner. Fast, but often misses boundaries due to compiler optimizations or anti-reversing.
+3. **Ghidra Feed:** For complex/protected games, analyze in Ghidra and export the CSV map using `ps2xRecomp/tools/ghidra/ExportPS2Functions.py`, then pass it via `[general] ghidra_output`.
 
 ### The Multi-Binary TOML Challenge
 When a game uses a tiny launcher ELF and a massive `.BIN` core (like SW Ep 3), you **do not** put everything in one `game.toml`.
@@ -36,8 +36,8 @@ single_file_output = false                # Set to true to speed up compilation 
 ```
 
 ### Stubs and Skips (Flat Arrays)
-"Stubs" are functions the recompiler will **NOT** translate to C++. Instead, any `jal` to this address will be replaced by a call to a registered C++ handler.
-"Skips" are functions to actively ignore and not recompile at all (e.g. bootstrapper code).
+"Stubs" are functions the recompiler will **NOT** translate. It generates small wrapper functions that route to known runtime handlers.
+"Skips" are functions to actively ignore. The recompiler treats them as intentionally unsupported and generates explicit placeholders like `ps2_stubs::TODO_NAMED("FunctionName")` returning an error-like value.
 ```toml
 stubs = [
   "printf",
