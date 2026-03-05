@@ -22,7 +22,9 @@ Before using this, you must change how you interact with the LLM.
 For the agent to work flawlessly, your machine must have the following ready:
 
 1. **Visual Studio 2022 (C++ Desktop Workload)**: Required for the MSBuild native tools. The `build_daemon.ps1` looks for `vcvars64.bat`.
-2. **Python 3.x**: Required for the `log_reaper.py`, `pdf_grep.py`, and `pdf_extract_image.py` scripts. Install the PDF parser via: `pip install PyMuPDF pymupdf4llm`
+   - **⚠️ CRITICAL: You MUST install Clang and Ninja.** Open the Visual Studio Installer, go to "Individual Components", and enable **"C++ Clang Compiler for Windows"** and **"C++ CMake tools for Windows"**. `build_daemon.ps1` will literally refuse to run without them.
+2. **CMake**: Ensure CMake is installed and available in your PATH. (Usually bundled with the VS CMake tools above).
+3. **Python 3.x**: Required for the `log_reaper.py`, `pdf_grep.py`, and `pdf_extract_image.py` scripts. Install the PDF parser via: `pip install PyMuPDF pymupdf4llm`
 3. **Ghidra 11.4.2**:
    - Installed with the [EmotionEngine Reloaded Plugin](https://github.com/chaoticgd/ghidra-emotionengine-reloaded).
    - Installed with the [**GhydraMCP**](https://github.com/starsong-consulting/GhydraMCP) extension running on port 8192 (CodeBrowser must be open with the ELF).
