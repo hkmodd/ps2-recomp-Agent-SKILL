@@ -148,7 +148,40 @@ Violating ANY of these is an immediate, unrecoverable failure. No exceptions.
 > **Violation of this gate = 30+ hours of rebuild lost. There is no undo.**
 
 2. **NEVER modify `runner/*.cpp` files.** These are auto-generated from MIPS. The recompiler will overwrite your changes. Fix the runtime layer or write a game override instead.
-3. **NEVER modify `.h` header files without explicit user approval.** A header change triggers recompilation of every file that includes it — potentially thousands.
+3. **NEVER modify `.h` header files.** This is the single most expensive mistake in this project.
+
+   **WHY:** Headers form a transitive inclusion chain. Example: `ps2_gs_gpu.h` → included by `ps2_runtime.h` → included by ALL 30,000+ runner `.cpp` files. Touching ANY header in `ps2xRuntime/include/` triggers recompilation of the **entire project** (~30+ hours with MSVC, ~1 hour with clang-cl). There is NO way to limit the blast radius — Ninja tracks every `.h` dependency transitively.
+
+   **WHAT TO DO INSTEAD:** When you need diagnostics, counters, tracking variables, or debug state:
+
+   | Need | Wrong (header) | Right (.cpp only) |
+   |------|---------------|--------------------|
+   | Add a counter to a class | `uint32_t m_count;` in the `.h` | `static uint32_t s_count = 0;` at file scope in the `.cpp` |
+   | Expose diagnostic data | New public getter in `.h` | Free function in `.cpp` + `extern` declaration in the ONE `.cpp` that reads it |
+   | Add a new diagnostic method | `void dumpState()` in `.h` | Free function `void dumpGSState(GS* gs)` in a `.cpp` that accesses `gs` via existing public API |
+   | Track register writes | New member in class | `static` variable in `writeRegister()` function body or file scope |
+
+   **Concrete pattern — extern in .cpp pairs (no header touch):**
+   ```cpp
+   // In ps2_gs_gpu.cpp (where the counter is incremented)
+   uint32_t g_gsDrawCallCount = 0;  // file-scope, non-static = external linkage
+
+   void GS::vertexKick(bool drawing) {
+       ...
+       m_rasterizer.drawPrimitive(this);
+       ++g_gsDrawCallCount;
+   }
+
+   // In ps2_runtime.cpp (where the counter is read)
+   extern uint32_t g_gsDrawCallCount;  // links to the definition above
+   void UploadFrame(...) {
+       printf("draws=%u\n", g_gsDrawCallCount);
+       g_gsDrawCallCount = 0;
+   }
+   ```
+   This recompiles only the 2 `.cpp` files you touched (~seconds), NOT 30,000.
+
+   **If you truly MUST change a `.h`** (e.g., fixing a broken struct layout, not just adding diagnostics): **STOP and explicitly tell the user** that this will trigger a full rebuild of N files, estimate the time cost, and ask for approval before proceeding. Never "just do it."
 4. **NEVER run destructive git commands.** No `git checkout`, `git clean`, `git reset`, `git stash`, `git pull`. Changes are local and permanent.
 5. **NEVER assume file names or paths.** Use `list_dir`, `find_by_name`, or `grep_search` to verify. Game assets vary per title (some have COREC.BIN, others don't; some have multiple SLES, others one). **Also never assume game files are inside the PS2Recomp repo** — they are often in a separate game workspace directory (see Mental Model rule 6).
 6. **NEVER claim code compiles without reading the build output.** Run `cmake --build <build_dir>` and verify exit code 0.
@@ -372,7 +405,7 @@ Before writing or modifying ANY code, verify ALL of these:
 - [ ] Confirm you are inside a **vcvars64** environment (check: `$env:VSINSTALLDIR` is set, or `where cl` returns a path)
 - [ ] Confirm the build directory exists and is intact (the name varies per project — check `PS2_PROJECT_STATE.md`)
 - [ ] Confirm the file you're modifying is in `src/lib/` or is a game override — NOT in `runner/`
-- [ ] If modifying a `.h` file: **STOP and ask the user**
+- [ ] If modifying a `.h` file: **STOP.** Can you achieve the same goal with `.cpp`-only changes? (See prohibition #3 for patterns.) If yes, use the `.cpp` approach. If a `.h` change is truly unavoidable, tell the user the rebuild cost BEFORE proceeding.
 - [ ] If the change adds a new `.cpp` file: verify it's picked up by `CMakeLists.txt` globs or add it
 
 After ANY code change:
