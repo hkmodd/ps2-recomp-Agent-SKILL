@@ -81,17 +81,26 @@ Do NOT ask the user what game they are porting until you have tried to detect it
  Fill in: Game Info, Workspace Paths, Binaries table, Build Configuration, Current Phase.
  If you detected build config from CMakeCache.txt, **report to user** before changing anything.
 
-### Continuous Refresh Loop (every session, every ~5 turns)
+### Continuous Refresh Loop — MANDATORY TRIGGERS (Not Optional)
 
-Context decays. This loop fights it:
-1. **Re-read** `PS2_PROJECT_STATE.md` — its header repeats the prohibitions.
-2. **Re-read** the `⛔ ABSOLUTE PROHIBITIONS` section below.
-3. **Re-read** the `🎯 PROBLEM RESOLUTION` section — especially the 4 Tools and Decision Flowchart.
-4. **Before ANY build command:** Execute the ⛔ BUILD GATE (see §PROHIBITIONS). The ONLY safe build command is `cmake --build <build_dir>` from inside a **vcvars64 environment**. The build directory name varies per project (`build64/`, `build/`, etc.) — read it from CMakeCache.txt or `PS2_PROJECT_STATE.md`, NEVER assume.
-5. **Before creating or deleting ANY file:** Re-read prohibition #5 and #7 below, then verify with `list_dir` or `find_by_name`.
-6. **After ANY major action:** Update `PS2_PROJECT_STATE.md` with what you did and the result.
+Context decays. "Every ~5 turns" is too vague — you skip it. Instead, these **specific triggers** FORCE a re-read:
 
-**This creates a loop: SKILL → state file → SKILL. Follow it.**
+| Trigger | What to re-read |
+|---------|----------------|
+| Before writing ANY C++ code | §PROHIBITIONS (esp. #2, #3, #5) + PS2_PROJECT_STATE.md |
+| Before running ANY build command | ⛔ BUILD GATE (full 4-step checklist) |
+| Before running the game executable | PS2_PROJECT_STATE.md § Active Runner Command |
+| After ANY error, crash, or unexpected output | PS2_PROJECT_STATE.md + §PROBLEM RESOLUTION Decision Flowchart |
+| After loading a large file (>100 lines) | §PROHIBITIONS (context displacement protection) |
+| When you feel confident without having just verified | That confidence IS the hallucination — re-read the source |
+| After 15+ tool calls since last refresh | Full refresh: state file header + §PROHIBITIONS + §PROBLEM RESOLUTION |
+
+**Additional mandatory actions each refresh:**
+1. **Before ANY build command:** Execute the ⛔ BUILD GATE (see §PROHIBITIONS). The ONLY safe build command is `cmake --build <build_dir>` from inside a **vcvars64 environment**. The build directory name varies per project (`build64/`, `build/`, etc.) — read it from CMakeCache.txt or `PS2_PROJECT_STATE.md`, NEVER assume.
+2. **Before creating or deleting ANY file:** Re-read prohibition #5, #7, and **#11** below, then verify with `list_dir` or `find_by_name`.
+3. **After ANY major action:** Update `PS2_PROJECT_STATE.md` with what you did and the result.
+
+**This creates a loop: SKILL → state file → SKILL. Follow it. These triggers are NOT optional.**
 
 > **Knowledge Databases** (in `resources/`): Start with `db-ps2-index.md` — it's the **router** that maps any PS2 topic to the right db file. Use it to find which file to consult instead of guessing. The full set:
 >
@@ -193,8 +202,21 @@ Violating ANY of these is an immediate, unrecoverable failure. No exceptions.
     - **Count files:** `(Get-ChildItem ps2xRuntime/src/runner -Filter *.cpp).Count` (returns a number)
     - **Read ONE specific file:** `view_file` on a single known path like `runner/out_00100008.cpp`
     - **NEVER:** `list_dir("ps2xRuntime/src/runner")`, `find_by_name("*.cpp", runner)`, or any glob/search that could return thousands of results
+11. **NEVER create files in the project root.** Temp scripts, log captures, diagnostic dumps — NONE of these belong in the repo root. They pollute the workspace, confuse future sessions, and accumulate into a dumpster fire.
 
-## 🧠 MENTAL MODEL (6 Rules)
+    **Where temp files go:**
+    | Type | Location | Lifetime |
+    |------|----------|----------|
+    | Temp scripts (Python, PS1, bat) | `/tmp/` or system temp dir | Delete immediately after use |
+    | Test output capture | Read from stdout directly — NEVER redirect to a file | N/A |
+    | Diagnostic data | `/tmp/diag/` subfolder | Delete when diagnosis complete |
+    | Scratch notes | Artifacts directory (brain/) | Session-scoped |
+
+    **What DOES belong in the project root:** Only files that were there when the repo was cloned, PLUS `PS2_PROJECT_STATE.md` and `run_game.bat`.
+
+    **Cleanup rule:** Before ending ANY session, verify the project root has no files YOU created. If you find any, delete them. `list_dir` the root and compare to the known-good list.
+
+## 🧠 MENTAL MODEL (6 Rules + Physical Constants)
 
 1. **This is NOT emulation.** Original PS2 MIPS instructions have been statically recompiled into C++ source files (`ps2xRuntime/src/runner/*.cpp`). There is no emulation loop.
 2. **The Runtime Layer** (`ps2xRuntime/src/lib/`) is handwritten C++ that intercepts PS2 hardware calls (syscalls, memory, DMA, IOP) and translates them into native OS equivalents.
@@ -233,6 +255,75 @@ PS2 "ELF" binaries have **unpredictable naming**. The agent must know:
 3. Check file size: main ELF is typically 2-50 MB, much larger than other files
 
 **Multi-binary discovery happens in Phase 1** — you analyze the main binary first, then discover secondary binaries when the game tries to load them at runtime (crashes with "unrecognized function" or load errors pointing to addresses outside the main ELF range).
+
+### Physical Constants — Numbers You Should Never Have to Look Up
+
+| Constant | Value | Notes |
+|----------|-------|-------|
+| RDRAM size | 32 MB (`0x02000000`) | Main system RAM |
+| EE address mask | `0x1FFFFFFF` | Physical address = virtual & mask |
+| GS register base | `0x12000000` | GS privileged registers |
+| VIF1 base | `0x10003C00` | VU1 interface registers |
+| GIF base | `0x10003000` | GS interface registers |
+| Scratchpad | `0x70000000` (16 KB) | Fast local memory |
+| Runner file count | ~30,000–33,000 | `.cpp` files in `runner/` |
+| Full rebuild time (MSVC) | **30+ hours** | ☠️ — why prohibition #1 exists |
+| Full rebuild time (clang-cl) | **~1 hour** | Optimal toolchain |
+| Incremental rebuild | **Seconds** | Only recompiles changed `.cpp` files |
+
+---
+
+## 🧊 CONTEXT WINDOW SURVIVAL — You Are Not Infinite
+
+Your context window is ~200K tokens. This sounds like a lot. It isn't. A single 500KB log file can consume 15% of your total capacity — and once old instructions get pushed out, you start making mistakes you wouldn't have made 30 minutes ago.
+
+### What Eats Your Context:
+
+| Action | Token Cost | Danger Level |
+|--------|-----------|-------------|
+| Reading a 500-line build output | ~3K tokens | ⚠️ Acceptable if needed |
+| Reading a 2000-line log file | ~12K tokens | 🔴 DANGEROUS — you lose old instructions |
+| Reading a 50KB text file in one shot | ~15K tokens | 🔴 Context decay starts |
+| Appending to a log across 10 test runs | Cumulative, unbounded | ☠️ WILL crash you |
+| Loading a resource file (db-*.md) | 5-20K each | ⚠️ Budget carefully |
+| 50+ tool calls in one session | Context full of tool I/O | 🔴 Earlier rules displaced |
+
+### Rules:
+
+1. **NEVER read more than 200 lines of output at once.** If a build produces 2000 lines of errors, read the FIRST 50 and the LAST 50. That's enough to diagnose.
+
+2. **EVERY test run overwrites, never appends.** When running the game:
+   - Use `run_command` with a SHORT timeout (5-15 seconds for boot tests)
+   - Read the output DIRECTLY from the command via `command_status` — don't redirect to files
+   - If you MUST save output: single file, OVERWRITE mode, read + delete after
+   - **OutputCharacterCount** in `command_status`: use 5000 max. If you need more, read in chunks.
+
+3. **Track your budget.** After every 15 tool calls, ask yourself:
+   - How many large files have I read this session?
+   - Am I starting to forget earlier instructions?
+   - Should I re-read PS2_PROJECT_STATE.md to reground?
+   - The answer is almost always YES.
+
+4. **When you feel confused or uncertain:** STOP. Re-read PS2_PROJECT_STATE.md. Re-read §PROHIBITIONS. This is NOT weakness — this is the protocol. A confused agent that keeps going causes MORE damage than one that pauses.
+
+5. **Resource file loading is ON-DEMAND ONLY.** Never load all db-*.md files at once. Load ONE when a specific trigger fires (see §Knowledge-Seeking Reflex). After using it, you don't need to keep it in mind — the trigger table tells you when to reload.
+
+---
+
+## 🐤 DEGRADATION CANARY — Detect Your Own Confusion
+
+You cannot feel yourself getting dumber. But you CAN test for it. Every 15 tool calls (or whenever something feels "off"), answer these 3 questions **from memory WITHOUT looking**:
+
+1. What is the build directory name? (must match PS2_PROJECT_STATE.md)
+2. What file types are you NOT allowed to edit? (`runner/*.cpp` and `.h` headers)
+3. What is the ONLY safe build command pattern? (`cmake --build <build_dir>`, no extra flags)
+
+**Scoring:**
+- 3/3 correct → You're fine. Continue.
+- 2/3 correct → ⚠️ Re-read PS2_PROJECT_STATE.md header AND §PROHIBITIONS before continuing.
+- 1/3 or 0/3 → 🔴 STOP all work. Full refresh: re-read state file header to footer, re-read §PROHIBITIONS, re-read §PROBLEM RESOLUTION summary. You are degraded.
+
+**If you can't even remember these 3 questions exist:** You've exceeded your useful context length. Tell the user: *"I've been working too long in this session and I'm losing track of critical rules. We should start a fresh session."*
 
 ---
 
@@ -325,6 +416,22 @@ If you catch yourself doing any of these, STOP IMMEDIATELY:
 | Creating "adapter" functions between runner calls | You're fighting the calling convention | The recompiler handles calling conventions. If it's wrong, fix the TOML config. |
 | Spending >10 minutes on a single crash without a diagnosis | You're guessing, not reasoning | Follow the Decision Flowchart. Use Ghidra for context. Ask the user. |
 
+### 🚨 Agent Mistake Taxonomy — Your Own Failure Modes
+
+These are NOT PS2 bugs. These are mistakes YOU (the agent) make repeatedly. Learn them:
+
+| Your Mistake | Why It Happens | Prevention |
+|-------------|---------------|------------|
+| Editing a `.h` file "just to add one field" | You forget the 30K recompilation cost | §PROHIBITION #3 — ALWAYS check. If in doubt, it's a .h and you can't touch it. |
+| Creating temp scripts in project root | No cleanup protocol was encoded (now it is: prohibition #11) | Put ALL temp files in `/tmp/`. Clean up before ending. |
+| Reading a huge log file in one shot | You forget context is finite (~200K tokens) | Max 200 lines per read. Use `OutputCharacterCount=5000`. |
+| Appending to the same log file across runs | You forget previous runs accumulate | Overwrite every time. Better: read from stdout directly. |
+| Not re-reading the state file | You trust your memory (your memory is HALLUCINATION-PRONE) | Follow the Mandatory Trigger table. |
+| Confident without verification | Classic LLM hallucination pattern | Verify. Build. Run. Read output. THEN claim success. |
+| Trying 3+ fixes for the same crash without diagnosis | Guessing instead of reasoning | 3 Strike Rule exists — USE it. Load the db file. |
+| Leaving game processes running | Forgot to kill the game after testing | Always `Terminate` via `send_command_input` after reading output. |
+| Writing a fix without reading the state file first | Context drift — you forgot the current state | Mandatory Trigger: "Before writing ANY C++ code" → re-read state file. |
+
 ### Subsystem Map — Know Your Layers
 
 When a crash involves PS2 hardware, you need to know which Runtime C++ file handles it.
@@ -383,9 +490,27 @@ PS2Recomp is under **active development**. It has open bugs. You WILL encounter 
 
 ---
 
-## ⚔️ ADVERSARIAL SPLIT — Mandatory for Code Changes
+## ⚔️ ADVERSARIAL SPLIT + VERIFICATION-FIRST — Mandatory for Code Changes
 
-Before writing ANY C++ fix, override, or stub, you MUST execute this 3-step structure:
+You are an LLM. You WILL hallucinate. You WILL confuse similar patterns. You WILL forget things from 50 tool calls ago. Accept this and COMPENSATE with structure:
+
+### The 3 Rules of Epistemic Humility:
+
+1. **Never claim without evidence.**
+   - ❌ "This function returns 0" → Did you READ the code? Or are you remembering from 30 tool calls ago?
+   - ✅ "Let me verify — `view_file` on the function → yes, line 47 returns 0"
+
+2. **Never assume from pattern.**
+   - ❌ "The other syscalls use this pattern, so this one must too"
+   - ✅ "Let me check db-syscalls.md for this specific syscall number"
+
+3. **If you're >80% sure without recent verification, you're probably wrong.**
+   - High confidence without recent evidence = hallucination risk
+   - Re-read the source. Re-read the reference. THEN be confident.
+
+### Adversarial 3-Step Structure:
+
+Before writing ANY C++ fix, override, or stub, you MUST execute:
 
 1. **PROPOSE:** Draft your solution — which address to hook, what C++ logic, which file. State your hypothesis about *why* this fixes the crash.
 2. **ATTACK:** Immediately switch stance. Try to destroy your own proposal:
@@ -393,7 +518,19 @@ Before writing ANY C++ fix, override, or stub, you MUST execute this 3-step stru
    - Are you suppressing a crash that will just cause silent corruption later?
    - Are you modifying a `runner/*.cpp` file instead of the runtime layer?
    - Does this break any previous milestone in the state file?
+   - **Did you actually READ the relevant code, or are you assuming from memory?**
+   - **Have you loaded the relevant db file for this subsystem?**
 3. **EXECUTE:** Only after the attack finds no fatal flaws, output the final code and commands.
+
+### Verification Ladder (EVERY fix must climb this):
+
+1. ✍️ Write the fix
+2. 🔨 BUILD it (read full output, verify exit code 0)
+3. 🎮 RUN it (read stdout via `command_status`, verify behavior changed)
+4. ✅ COMPARE to expected behavior (what SHOULD happen? does it?)
+5. 📝 Only THEN update PS2_PROJECT_STATE.md with success/failure
+
+**If you skip any step, your claim of "fixed" is a hallucination.** Build output or it didn't happen.
 
 Skip this ONLY for trivial reads, greps, or state file updates. For **any code modification**, this structure is mandatory.
 
@@ -501,7 +638,31 @@ After ANY code change:
    - RUN: `cmake --build <build_dir>` — **INCREMENTAL ONLY, no extra flags**
    - READ: full build output, verify exit code 0
 3. If build fails: read error, fix C++ code, rebuild via BUILD GATE again. Do not ask user to compile.
-4. Run the executable directly (command stored in `PS2_PROJECT_STATE.md`). Use `run_command` with a timeout.
+4. **🎮 Run the game — STANDARD TEST PROTOCOL (use EVERY time, no variations):**
+
+   **Step A — Read the command.** Get the exact run command from `PS2_PROJECT_STATE.md` § Active Runner Command. **NEVER reconstruct it from memory.** Memory lies.
+
+   **Step B — Run with SHORT timeout.**
+   - Boot tests: 10-15 seconds max (`WaitMsBeforeAsync=15000`)
+   - Menu tests: 30 seconds max (`WaitMsBeforeAsync=30000`)
+   - The game will crash or hang — short timeouts prevent wasting time waiting.
+
+   **Step C — Read output IMMEDIATELY.**
+   - Use `command_status` with `OutputCharacterCount=5000` (max 5000 chars per read)
+   - If output is larger, read the LAST 5000 chars (most recent = most relevant)
+   - **NEVER** read more than 10K chars total from a single test run
+
+   **Step D — Kill the process.**
+   - Use `send_command_input` with `Terminate=true`
+   - Don't leave game instances running — they consume resources and confuse future tests
+
+   **Step E — Diagnose from the output you just read.**
+   - Don't re-run hoping for different results — same code = same crash
+   - Fix first, THEN test again
+   - If you can't diagnose: follow the Decision Tree below + check db files
+
+   **Step F — Record.** One line in PS2_PROJECT_STATE.md: date, what you tested, exact result.
+
 5. Write game overrides following `examples/game-override-template.cpp`.
 6. Address crashes using the Decision Tree below.
    **Exit:** Executable builds and advances past bootloader.
