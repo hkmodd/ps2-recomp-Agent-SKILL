@@ -768,7 +768,7 @@ Only load these files when you need specific knowledge. Do not pre-load all of t
 
 1. At session start: check for `PS2_PROJECT_STATE.md` in the user's project root.
 2. If it doesn't exist: create it from **this skill's** `scripts/project-state-template.md`. If you can also infer the phase from physical evidence (hundreds of `out_*.cpp` = PHASE_RUNTIME_BUILD), fill in the phase.
-3. Every 5 turns and after every major action: re-read the state file (its header contains the rules) and update it with results.
+3. Follow the Mandatory Triggers table (§BOOT SEQUENCE) and after every major action: re-read the state file (its header contains the rules) and update it with results.
 4. Runner command is stored under `## Active Runner Command` — read it verbatim, never reconstruct from memory.
 
 ## 🔁 SESSION CLOSE (Mandatory — Before Ending Work)
