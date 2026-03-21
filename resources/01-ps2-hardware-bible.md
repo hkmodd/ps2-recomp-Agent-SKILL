@@ -98,3 +98,22 @@ struct R5900Context {
 };
 ```
 In runtime bindings, functions take a reference to this `ctx` to read `a0` (args) and write `v0` (return).
+
+## 8. Subsystem Map — Runtime File Routing
+
+When a crash involves PS2 hardware, use this table to find the responsible C++ file in `ps2xRuntime/src/lib/`:
+
+| PS2 Subsystem | Address Range / Identifier | Runtime File(s) | Typical Symptoms |
+|---------------|----------------------------|-----------------|------------------|
+| **EE Core** (main CPU) | Recompiled code range | `ps2_runtime.cpp` + Runner code | Crashes in game logic |
+| **GS** (Graphics) | `0x12000000-0x12001FFF` | `ps2_gs_gpu.cpp`, `ps2_gs_rasterizer.cpp` | Black screen, wrong rendering |
+| **VU0/VU1** (Vector Units) | Inline in EE code | `ps2_vu1.cpp` + Runner (recompiled) | Wrong geometry, broken transforms |
+| **VIF1** (VU Interface) | `0x10003C00-0x10003FFF` | `ps2_vif1_interpreter.cpp` | VU data not arriving, bad geometry |
+| **GIF** (GS Interface) | `0x10003000-0x100037FF` | `ps2_gif_arbiter.cpp` | GS commands not reaching renderer |
+| **SPU2** (Audio) | IOP side | `ps2_audio.cpp`, `ps2_audio_vag.cpp` | No sound, crashes on audio init |
+| **IOP** (I/O Processor) | RPC calls, modules | `ps2_iop.cpp`, `ps2_iop_audio.cpp` | Hang during boot, module load fails |
+| **Pad** (Controller) | `0x1F801xxx` | `ps2_pad.cpp` | No input, wrong buttons |
+| **Syscalls** | `syscall` instruction | `ps2_syscalls.cpp` | Unimplemented syscall → crash |
+| **Stubs** | Stubbed functions | `ps2_stubs.cpp` | Missing SDK function → log + return 0 |
+| **Memory** | Kernel calls, TLB | `ps2_memory.cpp` | Segfault, invalid pointer |
+| **Game Overrides** | Specific functions per-game | `game_overrides.cpp` | Recompiled function behaves wrong |

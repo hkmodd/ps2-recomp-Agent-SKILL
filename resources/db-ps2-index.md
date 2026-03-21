@@ -118,10 +118,37 @@
 
 | I need to know about... | Go to | Section |
 |------------------------|-------|---------|
+| **EE/IOP architecture narrative** | `01-ps2-hardware-bible.md` | Full narrative reference |
+| **Memory maps (narrative)** | `01-ps2-hardware-bible.md` | Memory Maps |
+| **I/O register overview** | `01-ps2-hardware-bible.md` | I/O Registers |
+| **Subsystem→file routing** | `01-ps2-hardware-bible.md` | Subsystem Routing |
+
+---
+
+| I need to know about... | Go to | Section |
+|------------------------|-------|---------|
+| **MIPS→C++ translation patterns** | `02-mips-r5900-isa.md` | Translation Rules |
+| **MMI translation to C++** | `02-mips-r5900-isa.md` | MMI Translation |
+| **COP0 translation to C++** | `02-mips-r5900-isa.md` | COP0 Translation |
+| **FPU translation to C++** | `02-mips-r5900-isa.md` | FPU Translation |
+
+---
+
+| I need to know about... | Go to | Section |
+|------------------------|-------|---------|
 | **PS2Recomp pipeline / TOML** | `03-ps2recomp-pipeline.md` | Full pipeline |
 | **TOML configuration** | `03-ps2recomp-pipeline.md` | Configuration |
 | **Override system (*.cpp)** | `03-ps2recomp-pipeline.md` | Override System |
 | **Build process (cmake)** | `03-ps2recomp-pipeline.md` | Build Process |
+
+---
+
+| I need to know about... | Go to | Section |
+|------------------------|-------|---------|
+| **Runtime syscall implementation** | `04-runtime-syscalls-stubs.md` | Syscall Implementation |
+| **Stub patterns / signatures** | `04-runtime-syscalls-stubs.md` | Stub Patterns |
+| **Runtime structure (src/lib/)** | `04-runtime-syscalls-stubs.md` | Runtime Architecture |
+| **Game override C++ patterns** | `04-runtime-syscalls-stubs.md` | Override Patterns |
 
 ---
 
@@ -151,26 +178,71 @@
 
 | I need to know about... | Go to | Section |
 |------------------------|-------|---------|
+| **How to search ps2tek.md** | `08-infinite-knowledge-base.md` | Search Instructions |
+| **ps2tek section map** | `08-infinite-knowledge-base.md` | Section Index |
+
+---
+
+| I need to know about... | Go to | Section |
+|------------------------|-------|---------|
 | **Deep hardware reference** | `09-ps2tek.md` | Everything (232K) |
 
 ---
+
+| I need to know about... | Go to | Section |
+|------------------------|-------|---------|
+| **ELF overlay detection** | `db-overlay-patterns.md` | §1 What Are Overlays |
+| **Multi-binary porting** | `db-overlay-patterns.md` | §2 Detection Checklist |
+| **COREC.BIN / dynamic modules** | `db-overlay-patterns.md` | §3 Discovery Protocol |
+| **Overlay TOML config** | `db-overlay-patterns.md` | §4 TOML Integration |
+
+---
+
+| I need to know about... | Go to | Section |
+|------------------------|-------|---------|
+| **All prohibitions in one place** | `10-agent-guardrails.md` | §1-§2 Mistake Taxonomy |
+| **Agent failure modes** | `10-agent-guardrails.md` | §1 Agent Mistake Taxonomy |
+| **Problem Resolution / crash triage** | `10-agent-guardrails.md` | §3 Problem Resolution |
+| **Fix Taxonomy (4 Tools)** | `10-agent-guardrails.md` | §3.1 Fix Taxonomy |
+| **Root Cause Protocol** | `10-agent-guardrails.md` | §3.3 Root Cause Protocol |
+| **Subsystem identification** | `10-agent-guardrails.md` | §3.5 Subsystem Map |
+| **Adversarial Split / verification** | `10-agent-guardrails.md` | §4 Adversarial Split |
+| **Circuit Breaker / 3-strike rule** | `10-agent-guardrails.md` | §5 Circuit Breaker |
+| **Porting phase workflow details** | `11-operational-phases.md` | Phase 0–5 Deep Dives |
+| **Phase entry/exit criteria** | `11-operational-phases.md` | Per-phase checklists |
+
+---
+
+| I need to know about... | Go to | Section |
+|------------------------|-------|---------|
+| **Hardware diagrams / images** | `images/IMAGE_CATALOG.md` | 80 classified diagrams |
+| **PS2 controller pad spec** | `padspecs.txt` | Controller SPI protocol |
 
 ## File Inventory
 
 | File | Size | Last Updated | Content Type |
 |------|------|-------------|-------------|
+| `01-ps2-hardware-bible.md` | ~15 KB | 2026-03-06 | EE/IOP architecture narrative, memory maps, I/O registers |
+| `02-mips-r5900-isa.md` | ~12 KB | 2026-03-06 | MIPS→C++ translation (MMI, COP0, FPU) |
+| `03-ps2recomp-pipeline.md` | ~9 KB | 2026-03-13 | PS2Recomp tool pipeline + TOML config |
+| `04-runtime-syscalls-stubs.md` | ~10 KB | 2026-03-06 | Syscall implementation, stubs, runtime structure |
+| `05-ghidra-ghydramcp-guide.md` | ~5 KB | 2026-03-04 | Ghidra/GhydraMCP analysis workflow |
+| `06-game-porting-playbook.md` | ~6 KB | 2026-03-05 | Game porting methodology |
+| `07-ps2-code-patterns.md` | ~4 KB | 2026-03-03 | Decompiled code pattern recognition |
+| `08-infinite-knowledge-base.md` | ~3 KB | 2026-03-06 | How to search & navigate 09-ps2tek.md |
+| `09-ps2tek.md` | ~232 KB | 2026-02-18 | Deep hardware reference (all registers) |
+| `10-agent-guardrails.md` | ~16 KB | 2026-03-21 | Guardrails + problem resolution + adversarial split |
+| `11-operational-phases.md` | ~8 KB | 2026-03-21 | Phase 0–5 deep workflow with entry/exit criteria |
 | `db-ps2-architecture.md` | ~40 KB | 2026-03-13 | System diagrams (mermaid), pipelines, data flow |
-| `db-ps2-index.md` | ~9 KB | 2026-03-13 | THIS FILE — master topic → file+section map |
+| `db-ps2-index.md` | ~12 KB | 2026-03-21 | THIS FILE — master topic → file+section map |
 | `db-isa.md` | ~24 KB | 2026-03-13 | R5900 instruction tables (630 lines) |
 | `db-vu-instructions.md` | ~15 KB | 2026-03-13 | VU0/VU1 micro instruction tables |
 | `db-registers.md` | ~53 KB | 2026-03-13 | All HW register addresses + bit-fields |
 | `db-sdk-functions.md` | ~34 KB | 2026-03-13 | SDK function signatures + PAD protocol |
 | `db-syscalls.md` | ~15 KB | 2026-03-13 | Syscall table, stubs, RPC, exception handling |
 | `db-memory-map.md` | ~7 KB | 2026-03-13 | Address space map, ELF layout |
-| `03-ps2recomp-pipeline.md` | ~9 KB | 2026-03-13 | PS2Recomp tool pipeline + TOML config |
-| `05-ghidra-ghydramcp-guide.md` | ~5 KB | 2026-03-04 | Ghidra/GhydraMCP analysis workflow |
-| `06-game-porting-playbook.md` | ~6 KB | 2026-03-05 | Game porting methodology |
-| `07-ps2-code-patterns.md` | ~4 KB | 2026-03-03 | Decompiled code pattern recognition |
-| `09-ps2tek.md` | ~232 KB | 2026-02-18 | Deep hardware reference (all registers) |
+| `db-overlay-patterns.md` | ~8 KB | 2026-07-18 | ELF overlay detection, multi-binary porting |
+| `images/IMAGE_CATALOG.md` | ~5 KB | 2026-03-06 | 80 classified hardware diagrams from PS2 PDFs |
+| `padspecs.txt` | ~2 KB | 2026-03-06 | PS2 controller SPI protocol specification |
 
-**Total knowledge base**: ~453 KB of structured, searchable PS2 knowledge.
+**Total knowledge base**: ~510+ KB of structured, searchable PS2 knowledge.
