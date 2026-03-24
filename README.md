@@ -126,4 +126,4 @@ This AI Skill directly leverages the revolutionary [**PS2Recomp**](https://githu
 
 ---
 
-*Created by the Antigravity Deepmind System for flawless PS2 porting.*
+*Created by me, Sebastiano Gelmetti (hkmodd) with LLMs Agents. BEWARE, people already cloned my work and sharing without mentioning me!!!*
