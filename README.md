@@ -31,7 +31,12 @@ For the agent to work flawlessly, your machine must have the following ready:
    - Installed with the [EmotionEngine Reloaded Plugin](https://github.com/chaoticgd/ghidra-emotionengine-reloaded).
    - Installed with the [**GhydraMCP**](https://github.com/starsong-consulting/GhydraMCP) extension running on port 8192 (CodeBrowser must be open with the ELF).
    - **Crucial**: Ensure `mcp_config.json` inside your AI environment (Cursor/Antigravity) is configured to connect to the local GhydraMCP server. This allows the *Agent* to drive Ghidra, not you!
-4. **Skill Placement**: Place the `ps2-recomp-Agent-SKILL/` folder inside your root PS2Recomp workspace, alongside `ps2xRecomp` and `ps2xRuntime`.
+4. [**PCSX2-MCP**](https://github.com/hkmodd/PCSX2-MCP) (DebugServer build):
+   - A custom PCSX2 build with an integrated DebugServer that exposes full debugging capabilities (128-bit registers, breakpoints, memory read/write, native disassembly) via MCP.
+   - **Required for runtime debugging and A/B comparison** between real PS2 execution and recompiled output.
+   - Ensure `mcp_config.json` in your AI environment points to the PCSX2 MCP server (default port: `21512` for DebugServer, `28011` for Pine IPC).
+   - The agent will use this to set breakpoints, inspect registers, compare memory snapshots, and diagnose crashes that can't be solved from static analysis alone.
+5. **Skill Placement**: Place the `ps2-recomp-Agent-SKILL/` folder inside your root PS2Recomp workspace, alongside `ps2xRecomp` and `ps2xRuntime`.
 
 ---
 
@@ -126,4 +131,4 @@ This AI Skill directly leverages the revolutionary [**PS2Recomp**](https://githu
 
 ---
 
-*Created by me, Sebastiano Gelmetti (hkmodd) with LLMs Agents. BEWARE, people already cloned my work and sharing without mentioning me!!!*
+*Created by the Antigravity Deepmind System for flawless PS2 porting.*

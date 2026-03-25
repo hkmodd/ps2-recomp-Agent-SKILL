@@ -70,6 +70,14 @@ PHASE_SETUP
 - **Ghidra CSV Path**: <!-- path to exported function map, if any -->
 - **single_file_output**: <!-- true/false -->
 
+## PCSX2 MCP Status
+<!-- Updated at session start if PCSX2 is available.
+     If PCSX2 is not running or not needed, set Status to "Not Connected".
+     This section lets the agent know whether A/B comparison is available. -->
+- **Status**: <!-- Connected (DebugServer) / Connected (Pine only) / Not Connected -->
+- **Game Loaded**: <!-- title + region from pcsx2_game_info(), or "N/A" -->
+- **Match**: <!-- Does the PCSX2 game match the recomp target? yes/no/N/A -->
+
 ## Active Runner Command
 <!-- AGENT: Once absolute paths are established, write the exact run command here.
      Never guess or reconstruct this command from memory. Read it and execute it verbatim.
@@ -115,6 +123,14 @@ PHASE_SETUP
 
 ## Known Issues
 - [ ] <!-- Active issue description -->
+
+## Known Upstream Issues
+<!-- Document PS2Recomp tool bugs found during development.
+     These are NOT game bugs — they're recompiler/toolchain bugs.
+     See 10-agent-guardrails.md §2 for the full protocol. -->
+| Affected Function/Address | What Recompiler Generates | What MIPS Actually Does | Workaround Applied | GitHub Issue |
+| ------------------------- | ------------------------- | ----------------------- | ------------------ | ----------- |
+|                           |                           |                         |                    |             |
 
 ## Learned Patterns (Auto-growing)
 <!-- After each session, synthesize key discoveries here. These compound across sessions.

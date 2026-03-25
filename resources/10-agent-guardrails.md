@@ -221,8 +221,9 @@ If you attempt the same `compile → test → fail → guess → compile` loop *
 2. Re-read `PS2_PROJECT_STATE.md`.
 3. **LOAD the relevant knowledge database** using the Knowledge-Seeking Reflex table below. You MUST do this before strike 3 — never attempt a third fix without loading the reference.
 4. Consult `resources/09-ps2tek.md` or use GhydraMCP.
-5. Search the web for community workarounds.
-6. If still stuck: format a specific technical question and **ask the user**.
+5. **PCSX2 MCP A/B Comparison.** If PCSX2 is available, use `12-pcsx2-mcp-playbook.md` §3 to compare real PS2 state vs. recompiled output. The first register/memory divergence IS the root cause.
+6. Search the web for community workarounds.
+7. If still stuck: format a specific technical question and **ask the user**.
 
 ---
 
@@ -245,6 +246,9 @@ You have 230+ KB of PS2 hardware documentation at your disposal. The boot loads 
 | Need to find the RIGHT file | `db-ps2-index.md` | Master router |
 | Need visual diagram | `resources/images/IMAGE_CATALOG.md` | 80 classified images |
 | Multi-binary / overlay issue | `db-overlay-patterns.md` | Overlay detection & multi-TOML |
+| Runtime crash (need register state) | `12-pcsx2-mcp-playbook.md` | PCSX2 breakpoints, A/B comparison |
+| Stuck after 2 failed fixes | `13-decisional-brain.md` | Reasoning loop, anti-patterns |
+| Need to compare real PS2 vs recomp | `12-pcsx2-mcp-playbook.md` §3 | A/B comparison workflow |
 
 **The rule**: If you're about to write code that touches PS2 hardware and you haven't loaded the relevant db file THIS SESSION → **STOP and load it first**. Never implement from memory. Always verify against the reference.
 

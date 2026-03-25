@@ -137,6 +137,12 @@
 
    **Step F — Record.** One line in PS2_PROJECT_STATE.md: date, what you tested, exact result.
 
+   **Step G — PCSX2 MCP Escalation (if available).** If Steps A-F don't explain the crash:
+   - Connect to PCSX2 running the SAME game (`pcsx2_connect()`)
+   - Set breakpoint at crash address, read registers/memory = ground truth
+   - Compare with recompiled behavior to find FIRST divergence
+   - Full protocol: `12-pcsx2-mcp-playbook.md` §3
+
 5. Write game overrides following `examples/game-override-template.cpp`.
 
 6. Address crashes using the Decision Flowchart in `10-agent-guardrails.md` §3.
@@ -167,3 +173,5 @@ When hitting a crash, null pointer, or infinite loop:
 4. **Verify:** Check for regressions against previous milestones. Update state file.
 
 **NEVER patch `runner/*.cpp`. Always fix via runtime or override.**
+
+> **If you find yourself stuck in the crash→fix→crash loop**, STOP and load `13-decisional-brain.md`. It contains the reasoning framework that breaks the loop.

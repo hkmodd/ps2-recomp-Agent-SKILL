@@ -29,6 +29,8 @@ This table tells you WHERE to find detailed instructions. Load the resource file
 | **Game-specific porting strategies** | `06-game-porting-playbook.md` | `sub_xxx` inference, triage, common patterns |
 | **PS2 code patterns (DMA/VIF/GS)** | `07-ps2-code-patterns.md` | Packet decoding, GS primitives, CD/IOP loops |
 | **PS2 hardware deep-dive** | `08-infinite-knowledge-base.md` → `09-ps2tek.md` | 230KB holy grail — registers, SCMD, SIF, VIF, SPU2 |
+| **Runtime debugging / A/B comparison** | `12-pcsx2-mcp-playbook.md` | PCSX2 DebugServer, breakpoints, register inspection, A/B comparison |
+| **Stuck on "why" / need reasoning framework** | `13-decisional-brain.md` | 5-step reasoning loop, diagnosis escalation, anti-patterns |
 | **Unknown PS2 topic** | `db-ps2-index.md` | **Master router** — maps any topic to the right db-*.md file |
 | **Hardware diagrams** | `resources/images/IMAGE_CATALOG.md` | 80 classified images from PS2 PDFs |
 
@@ -45,6 +47,11 @@ This table tells you WHERE to find detailed instructions. Load the resource file
 **A.1 — Check persistent memory.** Search workspace for `PS2_PROJECT_STATE.md`.
 - **Found:** Read it (resume session). Its header contains critical rules — absorb them.
 - **Not found:** Create from `scripts/project-state-template.md` (fresh session).
+
+**A.2 — Generate run script.** Check if `run_game_agent.bat` exists in project root.
+- **Found:** Verify paths inside it still match `PS2_PROJECT_STATE.md`.
+- **Not found:** Adapt `scripts/run_game_agent_template.bat` — replace `{{RUNNER_PATH}}`, `{{ELF_PATH}}`, `{{PROJECT_ROOT}}` with paths from state file. If paths not in state file → ask user ONCE, record in state file, then generate.
+- **Store** the final run command in `PS2_PROJECT_STATE.md → § Active Runner Command`.
 
 ### Phase B — KNOWLEDGE LOAD (first session or after context reset)
 
@@ -190,6 +197,25 @@ mcp_ghydra_functions_rename(...)     # label discovered functions
 
 **NEVER ask the user to look at Ghidra for you.** You have MCP tools — use them.
 
+### §7.5 PCSX2 MCP Quick Reference
+
+```
+mcp_pcsx2_pcsx2_connect()              # connect to DebugServer (always DebugServer build)
+mcp_pcsx2_pcsx2_pause()                # pause emulation — REQUIRED before reading registers
+mcp_pcsx2_pcsx2_read_registers()       # 128-bit EE registers (the primary diagnostic tool)
+mcp_pcsx2_pcsx2_disassemble(address)   # native MIPS disasm (runtime, not just ELF)
+mcp_pcsx2_pcsx2_set_breakpoint(addr)   # execution breakpoint (supports conditions)
+mcp_pcsx2_pcsx2_step()                 # single MIPS instruction
+mcp_pcsx2_pcsx2_read_memory(address)   # read PS2 RAM (hex/u32/ascii)
+mcp_pcsx2_pcsx2_memory_diff(address)   # snapshot → call again → see what changed
+mcp_pcsx2_pcsx2_save_state(slot)       # checkpoint before risky operations
+mcp_pcsx2_pcsx2_find_pattern(pattern)  # search PS2 RAM for hex pattern (use ?? wildcards)
+```
+
+**NEVER ask the user to look at PCSX2 for you.** You have MCP tools — use them.
+
+For full tool catalog, A/B comparison workflow, and recipes → load `12-pcsx2-mcp-playbook.md`.
+
 ---
 
 ## §8 REFERENCE INDEX — Load On Demand
@@ -207,6 +233,8 @@ mcp_ghydra_functions_rename(...)     # label discovered functions
 | `09-ps2tek.md` | 230KB PS2 hardware holy grail |
 | `10-agent-guardrails.md` | Problem resolution + mistake taxonomy + adversarial split |
 | `11-operational-phases.md` | Phase 0-5 deep workflow + test protocols |
+| `12-pcsx2-mcp-playbook.md` | PCSX2 DebugServer tools, A/B comparison, recipes |
+| `13-decisional-brain.md` | Reasoning loop, diagnosis escalation, anti-patterns |
 | `db-ps2-index.md` | **Master router** → maps topic to db file |
 | `db-syscalls.md` | EE syscall table |
 | `db-sdk-functions.md` | SDK function stubs |
@@ -233,6 +261,9 @@ mcp_ghydra_functions_rename(...)     # label discovered functions
 | Find the right file | `db-ps2-index.md` |
 | Visual diagram | `images/IMAGE_CATALOG.md` |
 | Multi-binary / overlay | `db-overlay-patterns.md` |
+| Runtime crash analysis / register inspection | `12-pcsx2-mcp-playbook.md` |
+| A/B comparison (PCSX2 vs recompiled) | `12-pcsx2-mcp-playbook.md` |
+| Stuck on "why" / circling without progress | `13-decisional-brain.md` |
 | Repeating mistakes | `10-agent-guardrails.md` |
 | Phase confusion | `11-operational-phases.md` |
 
@@ -249,6 +280,7 @@ mcp_ghydra_functions_rename(...)     # label discovered functions
 | `scripts/vif_gif_surgeon.py` | DMA/VIF/GIF packet decoder |
 | `scripts/install_ghydramcp.py` | One-shot GhydraMCP installer |
 | `scripts/project-state-template.md` | Template for `PS2_PROJECT_STATE.md` |
+| `scripts/run_game_agent_template.bat` | Templatized run script — adapt at Phase 0 with user paths |
 | `examples/toml-config-template.toml` | TOML config syntax reference |
 | `examples/game-override-template.cpp` | C++ override pattern |
 
